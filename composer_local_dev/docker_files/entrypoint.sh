@@ -28,7 +28,12 @@ if [ -f /var/local/setup_python_command.sh ]; then
     /var/local/setup_python_command.sh
 fi
 
-pip3 install --upgrade -r composer_requirements.txt
+if [ -n "${PIP_INDEX_URL}" ];then
+  pip3 install --upgrade -r composer_requirements.txt --index-url $PIP_INDEX_URL
+else
+  pip3 install --upgrade -r composer_requirements.txt
+fi
+
 pip3 check
 
 airflow db init
@@ -38,5 +43,5 @@ if ! grep -Fxq "AUTH_ROLE_PUBLIC = 'Admin'" /home/airflow/airflow/webserver_conf
   echo "AUTH_ROLE_PUBLIC = 'Admin'" >> /home/airflow/airflow/webserver_config.py
 fi
 
-airflow scheduler &
+airflow scheduler & airflow triggerer &
 exec airflow webserver
